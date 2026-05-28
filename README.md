@@ -1,4 +1,4 @@
-# Claw GitHub Chrome Extension
+# Claw GitHub
 
 This unpacked Chrome extension runs only on GitHub pull request pages and injects Claw GitHub command buttons near the PR header and near the bottom comment form.
 
@@ -20,6 +20,16 @@ The extension only matches URLs like:
 ```text
 https://github.com/<owner>/<repo>/pull/<number>
 ```
+
+## Install Userscript
+
+For Firefox, Safari, or other browsers, install a userscript manager such as Violentmonkey, Tampermonkey, or Userscripts, then install:
+
+```text
+claw-github.user.js
+```
+
+The userscript uses userscript-manager storage for the command LRU when available, with GitHub `localStorage` as a fallback.
 
 ## Build
 
