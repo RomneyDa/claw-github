@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Claw GitHub Commands
 // @namespace    https://github.com/RomneyDa/claw-github
-// @version      0.3.0
+// @version      0.3.1
 // @description  Adds Claw GitHub command buttons to GitHub PR pages.
 // @match        https://github.com/*/*/pull/*
 // @run-at       document-idle

@@ -23,7 +23,7 @@ https://github.com/<owner>/<repo>/pull/<number>
 
 ## Install Userscript
 
-For Firefox, Safari, or other browsers, install a userscript manager such as Violentmonkey, Tampermonkey, or Userscripts, then install:
+For Firefox, Safari, or other browsers, install a userscript manager such as Violentmonkey, Tampermonkey, or Userscripts, then install the release asset:
 
 ```text
 claw-github.user.js
@@ -47,7 +47,10 @@ dist/
 
 ## Release
 
-GitHub Actions builds and uploads the extension zip to a GitHub Release when a version tag is pushed:
+GitHub Actions builds and uploads both release assets when a version tag is pushed:
+
+- `claw-github-extension.zip`
+- `claw-github.user.js`
 
 ```sh
 git tag v0.1.0

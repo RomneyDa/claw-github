@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Clawsweeper Re-review",
   "description": "Adds Claw GitHub command buttons to GitHub PR pages.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "permissions": ["storage"],
   "content_scripts": [
     {

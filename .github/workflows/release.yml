@@ -46,13 +46,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ steps.tag.outputs.tag_name }}
         run: |
-          asset="$RUNNER_TEMP/release/claw-github-extension.zip"
+          extension_asset="$RUNNER_TEMP/release/claw-github-extension.zip"
+          userscript_asset="claw-github.user.js"
 
           if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release upload "$TAG_NAME" "$asset" --clobber
+            gh release upload "$TAG_NAME" "$extension_asset" "$userscript_asset" --clobber
           else
-            gh release create "$TAG_NAME" "$asset" \
+            gh release create "$TAG_NAME" "$extension_asset" "$userscript_asset" \
               --target "$GITHUB_SHA" \
               --title "$TAG_NAME" \
-              --notes "Chrome extension build for $TAG_NAME."
+              --notes "Chrome extension and userscript builds for $TAG_NAME."
           fi
