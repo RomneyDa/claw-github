@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Claw GitHub Commands
+// @name         ClawGithub
 // @namespace    https://github.com/RomneyDa/claw-github
-// @version      0.3.1
-// @description  Adds Claw GitHub command buttons to GitHub PR pages.
+// @version      0.3.2
+// @description  Adds ClawGithub command buttons to GitHub PR pages.
 // @match        https://github.com/*/*/pull/*
 // @run-at       document-idle
 // @grant        GM_getValue
@@ -235,7 +235,7 @@
     icon.className = "claw-github-feature-icon";
     icon.src = iconUrl();
     icon.alt = "";
-    icon.setAttribute("aria-label", "Claw GitHub features");
+    icon.setAttribute("aria-label", "ClawGithub features");
     icon.setAttribute("role", "img");
     return icon;
   }
@@ -293,7 +293,7 @@
     const summary = document.createElement("summary");
     summary.className = "claw-github-command-menu-summary btn btn-sm";
     summary.textContent = "More...";
-    summary.title = "Show remaining Claw GitHub commands";
+    summary.title = "Show remaining ClawGithub commands";
     details.append(summary);
 
     const menu = document.createElement("div");

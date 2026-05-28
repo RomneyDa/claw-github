@@ -118,7 +118,7 @@
     icon.className = "claw-github-feature-icon";
     icon.src = chrome.runtime.getURL("openclaw.webp");
     icon.alt = "";
-    icon.setAttribute("aria-label", "Claw GitHub features");
+    icon.setAttribute("aria-label", "ClawGithub features");
     icon.setAttribute("role", "img");
     return icon;
   }
@@ -176,7 +176,7 @@
     const summary = document.createElement("summary");
     summary.className = "claw-github-command-menu-summary btn btn-sm";
     summary.textContent = "More...";
-    summary.title = "Show remaining Claw GitHub commands";
+    summary.title = "Show remaining ClawGithub commands";
     details.append(summary);
 
     const menu = document.createElement("div");
