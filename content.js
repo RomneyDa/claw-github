@@ -1,5 +1,5 @@
 (() => {
-  const VISIBLE_COMMAND_COUNT = 5;
+  const VISIBLE_COMMAND_COUNT = 3;
   const LRU_STORAGE_KEY = "clawGithubCommandLru";
   const BUTTON_CLASS = "claw-github-command-button";
   const FEATURE_ROW_CLASS = "claw-github-feature-row";
@@ -167,6 +167,11 @@
   function createCommandSelect(commands) {
     const details = document.createElement("details");
     details.className = "claw-github-command-menu";
+    details.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      details.open = false;
+      summary.focus();
+    });
 
     const summary = document.createElement("summary");
     summary.className = "claw-github-command-menu-summary btn btn-sm";
@@ -351,6 +356,13 @@
     }
   }
 
+  function closeCommandMenusExcept(target) {
+    for (const menu of document.querySelectorAll(".claw-github-command-menu[open]")) {
+      if (target && menu.contains(target)) continue;
+      menu.open = false;
+    }
+  }
+
   function injectButtons() {
     if (!isPullRequestPage()) return;
 
@@ -370,6 +382,10 @@
 
     document.addEventListener("turbo:render", injectButtons);
     document.addEventListener("turbo:load", injectButtons);
+    document.addEventListener("click", (event) => closeCommandMenusExcept(event.target));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeCommandMenusExcept();
+    });
 
     globalThis.chrome?.storage?.onChanged?.addListener((changes, areaName) => {
       if (areaName !== "local" || !changes[LRU_STORAGE_KEY]) return;
