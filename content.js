@@ -6,87 +6,106 @@
   const COMMANDS_CLASS = "claw-github-command-list";
   const TOP_ROW_ID = "claw-github-top-feature-row";
   const BOTTOM_ROW_ID = "claw-github-bottom-feature-row";
+  const CLAWSWEEPER_COMMAND_DOCS =
+    "https://github.com/openclaw/clawsweeper/blob/main/src/repair/comment-router-core.ts";
+  const MANTIS_COMMAND_DOCS = "https://github.com/openclaw/openclaw/tree/main/.github/workflows";
   let lruCommandIds = [];
   const COMMANDS = [
     {
       id: "rereview",
-      label: "Re-review",
-      comment: "@clawsweeper re-review"
+      comment: "@clawsweeper re-review",
+      description: "Requests a fresh ClawSweeper review of this PR. It does not submit or merge.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "status",
-      label: "Status",
-      comment: "@clawsweeper status"
+      comment: "@clawsweeper status",
+      description: "Asks ClawSweeper for the current automation status on this PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "automerge",
-      label: "Automerge",
-      comment: "@clawsweeper automerge"
+      comment: "@clawsweeper automerge",
+      description: "Opts this PR into the ClawSweeper review, repair, and automerge loop.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "autofix",
-      label: "Autofix",
-      comment: "@clawsweeper autofix"
+      comment: "@clawsweeper autofix",
+      description: "Opts this PR into fix-only ClawSweeper repair. It will not merge the PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "fix-ci",
-      label: "Fix CI",
-      comment: "@clawsweeper fix ci"
+      comment: "@clawsweeper fix ci",
+      description: "Asks ClawSweeper to repair failing CI or check failures for this PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "address-review",
-      label: "Address review",
-      comment: "@clawsweeper address review"
+      comment: "@clawsweeper address review",
+      description: "Asks ClawSweeper to address review feedback on this PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "rebase",
-      label: "Rebase",
-      comment: "@clawsweeper rebase"
+      comment: "@clawsweeper rebase",
+      description: "Asks ClawSweeper to update or rebase this PR branch.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "explain",
-      label: "Explain",
-      comment: "@clawsweeper explain"
+      comment: "@clawsweeper explain",
+      description: "Asks ClawSweeper for read-only context about the current PR state.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "stop",
-      label: "Stop",
-      comment: "@clawsweeper stop"
+      comment: "@clawsweeper stop",
+      description: "Pauses ClawSweeper automation and leaves this PR for human review.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "approve",
-      label: "Approve",
-      comment: "@clawsweeper approve"
+      comment: "@clawsweeper approve",
+      description: "Maintainer approval for ClawSweeper automerge when remaining gates allow it.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "hatch",
-      label: "Hatch",
-      comment: "@clawsweeper hatch"
+      comment: "@clawsweeper hatch",
+      description: "Requests the ClawSweeper PR egg hatch/comment sync flow for this PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "visualize",
-      label: "Visualize",
-      comment: "@clawsweeper visualize state"
+      comment: "@clawsweeper visualize state",
+      description: "Queues a read-only visual/state brief for this PR.",
+      docs: CLAWSWEEPER_COMMAND_DOCS
     },
     {
       id: "mantis-telegram",
-      label: "Mantis Telegram",
-      comment: "@openclaw-mantis telegram"
+      comment: "@openclaw-mantis telegram",
+      description: "Runs the maintainer-only Mantis Telegram live QA workflow for this PR.",
+      docs: MANTIS_COMMAND_DOCS
     },
     {
       id: "mantis-visible-proof",
-      label: "Mantis proof",
-      comment: "@openclaw-mantis telegram visible proof"
+      comment: "@openclaw-mantis telegram visible proof",
+      description: "Runs the maintainer-only Mantis Telegram desktop visible-proof workflow.",
+      docs: MANTIS_COMMAND_DOCS
     },
     {
       id: "mantis-discord-status",
-      label: "Mantis Discord status",
-      comment: "@openclaw-mantis discord status reaction"
+      comment: "@openclaw-mantis discord status reaction",
+      description: "Runs the maintainer-only Mantis Discord status reaction proof workflow.",
+      docs: MANTIS_COMMAND_DOCS
     },
     {
       id: "mantis-discord-thread",
-      label: "Mantis Discord thread",
-      comment: "@openclaw-mantis discord thread attachment"
+      comment: "@openclaw-mantis discord thread attachment",
+      description: "Runs the maintainer-only Mantis Discord thread attachment proof workflow.",
+      docs: MANTIS_COMMAND_DOCS
     }
   ];
 
@@ -139,37 +158,45 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = `${BUTTON_CLASS} btn btn-sm`;
-    button.textContent = command.label;
-    button.title = command.comment;
+    button.textContent = command.comment;
+    button.title = commandTooltip(command);
     button.addEventListener("click", () => useCommand(command.id));
     return button;
   }
 
   function createCommandSelect(commands) {
-    const select = document.createElement("select");
-    select.className = "claw-github-command-select form-select input-sm";
-    select.setAttribute("aria-label", "More Claw GitHub commands");
+    const details = document.createElement("details");
+    details.className = "claw-github-command-menu";
 
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "More...";
-    select.append(placeholder);
+    const summary = document.createElement("summary");
+    summary.className = "claw-github-command-menu-summary btn btn-sm";
+    summary.textContent = "More...";
+    summary.title = "Show remaining Claw GitHub commands";
+    details.append(summary);
+
+    const menu = document.createElement("div");
+    menu.className = "claw-github-command-menu-items";
 
     for (const command of commands) {
-      const option = document.createElement("option");
-      option.value = command.id;
-      option.textContent = command.label;
-      option.title = command.comment;
-      select.append(option);
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "claw-github-command-menu-item";
+      item.textContent = command.comment;
+      item.title = commandTooltip(command);
+      item.addEventListener("click", () => {
+        details.open = false;
+        useCommand(command.id);
+      });
+      menu.append(item);
     }
 
-    select.addEventListener("change", () => {
-      if (!select.value) return;
-      useCommand(select.value);
-      select.value = "";
-    });
+    details.append(menu);
 
-    return select;
+    return details;
+  }
+
+  function commandTooltip(command) {
+    return `${command.description}\n\nFills: ${command.comment}\nSource: ${command.docs}`;
   }
 
   function injectTopButton() {
