@@ -1,8 +1,10 @@
 (() => {
   const VISIBLE_COMMAND_COUNT = 3;
   const LRU_STORAGE_KEY = "clawGithubCommandLru";
+  const SETTINGS_STORAGE_KEY = "clawGithubSettings";
   const BUTTON_CLASS = "claw-github-command-button";
   const FEATURE_ROW_CLASS = "claw-github-feature-row";
+  const FEATURE_CONTENT_CLASS = "claw-github-feature-content";
   const COMMANDS_CLASS = "claw-github-command-list";
   const TOP_ROW_ID = "claw-github-top-feature-row";
   const BOTTOM_ROW_ID = "claw-github-bottom-feature-row";
@@ -10,6 +12,21 @@
     "https://github.com/openclaw/clawsweeper/blob/main/src/repair/comment-router-core.ts";
   const MANTIS_COMMAND_DOCS = "https://github.com/openclaw/openclaw/tree/main/.github/workflows";
   let lruCommandIds = [];
+  let settings = null;
+  const FEATURES = [
+    {
+      id: "pr-comment-buttons",
+      name: "PR comment buttons",
+      description: "OpenClaw PR comment shortcuts.",
+      defaultEnabled: true
+    },
+    {
+      id: "copy-pr-context",
+      name: "Copy PR context",
+      description: "Copy PR number, title, repository, URL, and visible branch refs.",
+      defaultEnabled: false
+    }
+  ];
   const COMMANDS = [
     {
       id: "rereview",
@@ -113,22 +130,104 @@
     return /^\/[^/]+\/[^/]+\/pull\/\d+(?:\/|$)/.test(window.location.pathname);
   }
 
-  function createLobsterIcon() {
+  function createSettingsButton() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "claw-github-icon-button";
+    button.title = "ClawGithub settings";
+    button.setAttribute("aria-label", "ClawGithub settings");
+
     const icon = document.createElement("img");
     icon.className = "claw-github-feature-icon";
     icon.src = chrome.runtime.getURL("openclaw.webp");
     icon.alt = "";
-    icon.setAttribute("aria-label", "ClawGithub features");
-    icon.setAttribute("role", "img");
-    return icon;
+    button.append(icon);
+    button.addEventListener("click", () => {
+      const panel = button.parentElement?.querySelector(".claw-github-settings-panel");
+      if (!panel) return;
+      panel.hidden = !panel.hidden;
+      closeCommandMenusExcept();
+    });
+    return button;
   }
 
   function createFeatureRow(id) {
     const row = document.createElement("div");
     row.id = id;
     row.className = FEATURE_ROW_CLASS;
-    row.append(createLobsterIcon(), createCommandList());
+    row.append(createSettingsShell(), createFeatureContent());
     return row;
+  }
+
+  function createSettingsShell() {
+    const shell = document.createElement("div");
+    shell.className = "claw-github-settings-shell";
+    shell.append(createSettingsButton(), createSettingsPanel());
+    return shell;
+  }
+
+  function createSettingsPanel() {
+    const panel = document.createElement("div");
+    panel.className = "claw-github-settings-panel";
+    panel.hidden = true;
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    renderSettingsPanel(panel);
+    return panel;
+  }
+
+  function renderSettingsPanel(panel) {
+    panel.replaceChildren();
+
+    const title = document.createElement("div");
+    title.className = "claw-github-settings-title";
+    title.textContent = "ClawGithub";
+    panel.append(title);
+
+    for (const feature of FEATURES) {
+      const label = document.createElement("label");
+      label.className = "claw-github-settings-toggle";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = isFeatureEnabled(feature.id);
+      input.addEventListener("change", () => {
+        setFeatureEnabled(feature.id, input.checked);
+      });
+
+      const copy = document.createElement("span");
+      copy.className = "claw-github-settings-toggle-copy";
+
+      const name = document.createElement("span");
+      name.className = "claw-github-settings-toggle-name";
+      name.textContent = feature.name;
+
+      const description = document.createElement("span");
+      description.className = "claw-github-settings-toggle-description";
+      description.textContent = feature.description;
+
+      copy.append(name, description);
+      label.append(input, copy);
+      panel.append(label);
+    }
+  }
+
+  function createFeatureContent() {
+    const content = document.createElement("div");
+    content.className = FEATURE_CONTENT_CLASS;
+    renderFeatureContent(content);
+    return content;
+  }
+
+  function renderFeatureContent(content) {
+    content.replaceChildren();
+
+    if (isFeatureEnabled("pr-comment-buttons")) {
+      content.append(createCommandList());
+    }
+
+    if (isFeatureEnabled("copy-pr-context")) {
+      content.append(createCopyPrContextButton());
+    }
   }
 
   function createCommandList() {
@@ -202,6 +301,53 @@
 
   function commandTooltip(command) {
     return `${command.description}\n\nFills: ${command.comment}\nSource: ${command.docs}`;
+  }
+
+  function createCopyPrContextButton() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `${BUTTON_CLASS} btn btn-sm`;
+    button.textContent = "Copy PR context";
+    button.title = "Copies repository, PR number, title, URL, and visible branch refs.";
+    button.addEventListener("click", () => copyPrContext());
+    return button;
+  }
+
+  function copyPrContext() {
+    const context = prContextText();
+    if (!navigator.clipboard?.writeText) {
+      window.prompt("Copy PR context", context);
+      return;
+    }
+
+    navigator.clipboard.writeText(context).catch(() => {
+      window.prompt("Copy PR context", context);
+    });
+  }
+
+  function prContextText() {
+    const match = window.location.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    const owner = match?.[1] ?? "";
+    const repo = match?.[2] ?? "";
+    const number = match?.[3] ?? "";
+    const title =
+      document.querySelector(".js-issue-title")?.textContent?.trim() ||
+      document.querySelector("bdi.js-issue-title")?.textContent?.trim() ||
+      document.title.replace(/ by .+ · Pull Request #\d+ · GitHub$/, "").trim();
+    const branchRefs = Array.from(document.querySelectorAll(".commit-ref"))
+      .map((element) => element.textContent?.trim())
+      .filter(Boolean)
+      .slice(0, 4);
+
+    return [
+      `Repository: ${owner}/${repo}`,
+      `PR: #${number}`,
+      `Title: ${title}`,
+      `URL: ${window.location.href}`,
+      branchRefs.length > 0 ? `Refs: ${branchRefs.join(" -> ")}` : ""
+    ]
+      .filter(Boolean)
+      .join("\n");
   }
 
   function injectTopButton() {
@@ -301,6 +447,34 @@
       : [];
   }
 
+  function defaultSettings() {
+    return {
+      featureEnabled: Object.fromEntries(
+        FEATURES.map((feature) => [feature.id, feature.defaultEnabled])
+      )
+    };
+  }
+
+  function normalizeSettings(value) {
+    const defaults = defaultSettings();
+    const input = value && typeof value === "object" ? value : {};
+    const featureEnabled = { ...defaults.featureEnabled };
+    const inputFeatures =
+      input.featureEnabled && typeof input.featureEnabled === "object" ? input.featureEnabled : {};
+
+    for (const feature of FEATURES) {
+      if (typeof inputFeatures[feature.id] === "boolean") {
+        featureEnabled[feature.id] = inputFeatures[feature.id];
+      }
+    }
+
+    return { featureEnabled };
+  }
+
+  function isFeatureEnabled(featureId) {
+    return Boolean((settings ?? defaultSettings()).featureEnabled[featureId]);
+  }
+
   function readLocalStorageLruCommandIds() {
     try {
       const value = JSON.parse(window.localStorage.getItem(LRU_STORAGE_KEY) || "[]");
@@ -310,21 +484,32 @@
     }
   }
 
+  function readLocalStorageSettings() {
+    try {
+      return normalizeSettings(JSON.parse(window.localStorage.getItem(SETTINGS_STORAGE_KEY) || "null"));
+    } catch {
+      return normalizeSettings(null);
+    }
+  }
+
   function loadCommandOrder() {
     return new Promise((resolve) => {
       if (!globalThis.chrome?.storage?.local) {
+        settings = readLocalStorageSettings();
         lruCommandIds = readLocalStorageLruCommandIds();
         resolve();
         return;
       }
 
-      chrome.storage.local.get([LRU_STORAGE_KEY], (result) => {
+      chrome.storage.local.get([LRU_STORAGE_KEY, SETTINGS_STORAGE_KEY], (result) => {
         if (chrome.runtime.lastError) {
+          settings = readLocalStorageSettings();
           lruCommandIds = readLocalStorageLruCommandIds();
           resolve();
           return;
         }
 
+        settings = normalizeSettings(result?.[SETTINGS_STORAGE_KEY]);
         lruCommandIds = normalizeCommandIds(result?.[LRU_STORAGE_KEY]);
         if (lruCommandIds.length === 0) {
           lruCommandIds = readLocalStorageLruCommandIds();
@@ -335,6 +520,20 @@
         resolve();
       });
     });
+  }
+
+  function setFeatureEnabled(featureId, enabled) {
+    settings = normalizeSettings(settings);
+    settings.featureEnabled[featureId] = Boolean(enabled);
+
+    if (globalThis.chrome?.storage?.local) {
+      chrome.storage.local.set({ [SETTINGS_STORAGE_KEY]: settings });
+    } else {
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    }
+
+    refreshSettingsPanels();
+    refreshFeatureRows();
   }
 
   function recordCommandUse(commandId) {
@@ -356,10 +555,30 @@
     }
   }
 
+  function refreshFeatureRows() {
+    for (const row of document.querySelectorAll(`.${FEATURE_CONTENT_CLASS}`)) {
+      renderFeatureContent(row);
+    }
+  }
+
+  function refreshSettingsPanels() {
+    for (const panel of document.querySelectorAll(".claw-github-settings-panel")) {
+      renderSettingsPanel(panel);
+    }
+  }
+
   function closeCommandMenusExcept(target) {
     for (const menu of document.querySelectorAll(".claw-github-command-menu[open]")) {
       if (target && menu.contains(target)) continue;
       menu.open = false;
+    }
+  }
+
+  function closeSettingsPanelsExcept(target) {
+    for (const shell of document.querySelectorAll(".claw-github-settings-shell")) {
+      if (target && shell.contains(target)) continue;
+      const panel = shell.querySelector(".claw-github-settings-panel");
+      if (panel) panel.hidden = true;
     }
   }
 
@@ -371,8 +590,11 @@
   }
 
   function start() {
-    loadCommandOrder().then(refreshCommandRows);
-    injectButtons();
+    loadCommandOrder().then(() => {
+      injectButtons();
+      refreshCommandRows();
+      refreshFeatureRows();
+    });
 
     const observer = new MutationObserver(injectButtons);
     observer.observe(document.documentElement, {
@@ -382,15 +604,27 @@
 
     document.addEventListener("turbo:render", injectButtons);
     document.addEventListener("turbo:load", injectButtons);
-    document.addEventListener("click", (event) => closeCommandMenusExcept(event.target));
+    document.addEventListener("click", (event) => {
+      closeCommandMenusExcept(event.target);
+      closeSettingsPanelsExcept(event.target);
+    });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeCommandMenusExcept();
+      if (event.key !== "Escape") return;
+      closeCommandMenusExcept();
+      closeSettingsPanelsExcept();
     });
 
     globalThis.chrome?.storage?.onChanged?.addListener((changes, areaName) => {
-      if (areaName !== "local" || !changes[LRU_STORAGE_KEY]) return;
-      lruCommandIds = normalizeCommandIds(changes[LRU_STORAGE_KEY].newValue);
-      refreshCommandRows();
+      if (areaName !== "local") return;
+      if (changes[LRU_STORAGE_KEY]) {
+        lruCommandIds = normalizeCommandIds(changes[LRU_STORAGE_KEY].newValue);
+        refreshCommandRows();
+      }
+      if (changes[SETTINGS_STORAGE_KEY]) {
+        settings = normalizeSettings(changes[SETTINGS_STORAGE_KEY].newValue);
+        refreshSettingsPanels();
+        refreshFeatureRows();
+      }
     });
   }
 

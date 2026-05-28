@@ -6,12 +6,43 @@
   vertical-align: middle;
 }
 
+.claw-github-settings-shell {
+  display: inline-flex;
+  position: relative;
+}
+
+.claw-github-icon-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  padding: 2px;
+  width: 28px;
+}
+
+.claw-github-icon-button:hover,
+.claw-github-icon-button:focus {
+  background: var(--control-transparent-bgColor-hover, var(--color-action-list-item-default-hover-bg, rgba(208, 215, 222, 0.32)));
+  outline: none;
+}
+
 .claw-github-feature-icon {
   height: 24px;
   border-radius: 6px;
   display: block;
   object-fit: contain;
   width: 24px;
+}
+
+.claw-github-feature-content {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .claw-github-command-list {
@@ -70,6 +101,55 @@
 .claw-github-command-menu-item:focus {
   background: var(--control-transparent-bgColor-hover, var(--color-action-list-item-default-hover-bg, rgba(208, 215, 222, 0.32)));
   outline: none;
+}
+
+.claw-github-settings-panel {
+  background: var(--bgColor-default, var(--color-canvas-default, #ffffff));
+  border: 1px solid var(--borderColor-default, var(--color-border-default, #d0d7de));
+  border-radius: 6px;
+  box-shadow: var(--shadow-floating-small, 0 8px 24px rgba(140, 149, 159, 0.2));
+  color: var(--fgColor-default, var(--color-fg-default, #1f2328));
+  display: grid;
+  gap: 8px;
+  left: 0;
+  min-width: 280px;
+  padding: 10px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 101;
+}
+
+.claw-github-settings-panel[hidden] {
+  display: none;
+}
+
+.claw-github-settings-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.claw-github-settings-toggle {
+  align-items: flex-start;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto 1fr;
+}
+
+.claw-github-settings-toggle-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.claw-github-settings-toggle-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.claw-github-settings-toggle-description {
+  color: var(--fgColor-muted, var(--color-fg-muted, #656d76));
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .claw-github-bottom-feature-row {

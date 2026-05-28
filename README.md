@@ -8,6 +8,12 @@ Clicking a command enters its exact text into the PR comment box without submitt
 @clawsweeper re-review
 ```
 
+Click the OpenClaw icon in the injected row to open ClawGithub settings. The PR comment buttons feature is enabled by default. Additional tools are off by default and can be enabled from that panel.
+
+Current optional tools:
+
+- `Copy PR context`: copies repository, PR number, title, URL, and visible branch refs.
+
 ## Install Locally
 
 1. Open `chrome://extensions`.
