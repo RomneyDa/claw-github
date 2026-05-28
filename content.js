@@ -1,25 +1,49 @@
 (() => {
   const COMMENT_TEXT = "@clawsweeper re-review";
   const BUTTON_CLASS = "clawsweeper-rereview-button";
-  const TOP_BUTTON_ID = "clawsweeper-rereview-top-button";
-  const BOTTOM_BUTTON_ID = "clawsweeper-rereview-bottom-button";
+  const FEATURE_ROW_CLASS = "claw-github-feature-row";
+  const TOP_ROW_ID = "claw-github-top-feature-row";
+  const BOTTOM_ROW_ID = "claw-github-bottom-feature-row";
 
   function isPullRequestPage() {
     return /^\/[^/]+\/[^/]+\/pull\/\d+(?:\/|$)/.test(window.location.pathname);
   }
 
-  function createButton(id) {
+  function createLobsterIcon() {
+    const icon = document.createElement("span");
+    icon.className = "claw-github-feature-icon";
+    icon.setAttribute("aria-label", "Claw GitHub features");
+    icon.setAttribute("role", "img");
+    icon.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7.2 8.6c-1.1-.3-2.2-1-2.9-2L3 4.9l1.6-1.2 1.2 1.6c.5.7 1.4 1.1 2.2 1.2l.5-2.2 2 .5-.8 3.3c.7.5 1.2 1.2 1.5 2h1.6c.3-.8.8-1.5 1.5-2l-.8-3.3 2-.5.5 2.2c.9-.1 1.7-.5 2.2-1.2L19.4 3.7 21 4.9l-1.3 1.7c-.7 1-1.8 1.7-2.9 2 .8 1 .9 2.5.1 3.7l-.6.9-1.7-1.1.6-.9c.5-.7.3-1.7-.4-2.2-.7.8-1.7 1.3-2.8 1.3s-2.1-.5-2.8-1.3c-.7.5-.9 1.5-.4 2.2l.6.9-1.7 1.1-.6-.9c-.8-1.2-.7-2.7.1-3.7Z" />
+        <path d="M8 13.8h8v2.1c0 2.2-1.8 4.1-4 4.1s-4-1.9-4-4.1v-2.1Z" />
+        <path d="M5.1 15.3 2.8 14l-1 1.7 3.7 2.1L8 16.4v-2.3l-2.9 1.2Z" />
+        <path d="m18.9 15.3 2.3-1.3 1 1.7-3.7 2.1-2.5-1.4v-2.3l2.9 1.2Z" />
+      </svg>
+    `;
+    return icon;
+  }
+
+  function createFeatureRow(id) {
+    const row = document.createElement("div");
+    row.id = id;
+    row.className = FEATURE_ROW_CLASS;
+    row.append(createLobsterIcon(), createButton());
+    return row;
+  }
+
+  function createButton() {
     const button = document.createElement("button");
-    button.id = id;
     button.type = "button";
     button.className = `${BUTTON_CLASS} btn btn-sm`;
     button.textContent = "Clawsweeper re-review";
-    button.addEventListener("click", submitRereviewComment);
+    button.addEventListener("click", fillRereviewComment);
     return button;
   }
 
   function injectTopButton() {
-    if (document.getElementById(TOP_BUTTON_ID)) return;
+    if (document.getElementById(TOP_ROW_ID)) return;
 
     const headerActions =
       document.querySelector(".gh-header-actions") ||
@@ -28,11 +52,11 @@
 
     if (!headerActions) return;
 
-    headerActions.prepend(createButton(TOP_BUTTON_ID));
+    headerActions.prepend(createFeatureRow(TOP_ROW_ID));
   }
 
   function injectBottomButton() {
-    if (document.getElementById(BOTTOM_BUTTON_ID)) return;
+    if (document.getElementById(BOTTOM_ROW_ID)) return;
 
     const commentForm = findNewCommentForm();
     if (!commentForm) return;
@@ -42,9 +66,9 @@
       commentForm.querySelector(".timeline-comment-actions") ||
       commentForm;
 
-    const button = createButton(BOTTOM_BUTTON_ID);
-    button.classList.add("clawsweeper-rereview-bottom-button");
-    actions.prepend(button);
+    const row = createFeatureRow(BOTTOM_ROW_ID);
+    row.classList.add("claw-github-bottom-feature-row");
+    actions.prepend(row);
   }
 
   function findNewCommentForm() {
@@ -72,31 +96,10 @@
     textarea.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  function findSubmitButton(form) {
-    const buttons = Array.from(form.querySelectorAll("button, input[type='submit']"));
-
-    return buttons.find((button) => {
-      const label = `${button.textContent || ""} ${button.value || ""} ${button.getAttribute("aria-label") || ""}`.trim();
-      return /comment/i.test(label) && !button.disabled && button.offsetParent !== null;
-    });
-  }
-
-  function clickSubmitWhenReady(form, submitButton, attempts = 20) {
-    if (!submitButton.disabled) {
-      submitButton.click();
-      return;
-    }
-
-    if (attempts <= 0) return;
-
-    window.setTimeout(() => clickSubmitWhenReady(form, submitButton, attempts - 1), 100);
-  }
-
-  function submitRereviewComment() {
+  function fillRereviewComment() {
     const textarea = findCommentTextarea();
-    const form = textarea?.closest("form");
 
-    if (!textarea || !form) {
+    if (!textarea) {
       window.alert("Could not find the GitHub PR comment box.");
       return;
     }
@@ -104,14 +107,6 @@
     textarea.scrollIntoView({ block: "center", behavior: "smooth" });
     textarea.focus();
     setTextareaValue(textarea, COMMENT_TEXT);
-
-    const submitButton = findSubmitButton(form);
-    if (!submitButton) {
-      window.alert("Added the re-review text, but could not find the GitHub comment button.");
-      return;
-    }
-
-    clickSubmitWhenReady(form, submitButton);
   }
 
   function injectButtons() {

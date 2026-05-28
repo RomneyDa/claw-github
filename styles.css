@@ -1,8 +1,31 @@
-.clawsweeper-rereview-button {
+.claw-github-feature-row {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
   margin-right: 8px;
+  vertical-align: middle;
+}
+
+.claw-github-feature-icon {
+  align-items: center;
+  color: var(--fgColor-muted, var(--color-fg-muted, #656d76));
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.claw-github-feature-icon svg {
+  display: block;
+  fill: currentColor;
+  height: 20px;
+  width: 20px;
+}
+
+.clawsweeper-rereview-button {
   white-space: nowrap;
 }
 
-.clawsweeper-rereview-bottom-button {
+.claw-github-bottom-feature-row {
   margin-bottom: 8px;
 }
