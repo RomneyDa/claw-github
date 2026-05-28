@@ -20,3 +20,26 @@ The extension only matches URLs like:
 ```text
 https://github.com/<owner>/<repo>/pull/<number>
 ```
+
+## Build
+
+```sh
+./build.sh
+```
+
+This creates:
+
+```text
+dist/claw-github-extension.zip
+```
+
+## Release
+
+GitHub Actions builds and uploads the extension zip to a GitHub Release when a version tag is pushed:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+You can also run the **Release** workflow manually and provide a tag name.
