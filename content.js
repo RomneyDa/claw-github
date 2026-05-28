@@ -6,6 +6,7 @@
   const COMMANDS_CLASS = "claw-github-command-list";
   const TOP_ROW_ID = "claw-github-top-feature-row";
   const BOTTOM_ROW_ID = "claw-github-bottom-feature-row";
+  let lruCommandIds = [];
   const COMMANDS = [
     {
       id: "rereview",
@@ -251,7 +252,7 @@
     const byId = new Map(COMMANDS.map((command) => [command.id, command]));
     const ordered = [];
 
-    for (const id of readLruCommandIds()) {
+    for (const id of lruCommandIds) {
       const command = byId.get(id);
       if (!command) continue;
       ordered.push(command);
@@ -261,18 +262,60 @@
     return [...ordered, ...byId.values()];
   }
 
-  function readLruCommandIds() {
+  function normalizeCommandIds(value) {
+    const knownIds = new Set(COMMANDS.map((command) => command.id));
+    return Array.isArray(value)
+      ? value.filter((id) => typeof id === "string" && knownIds.has(id))
+      : [];
+  }
+
+  function readLocalStorageLruCommandIds() {
     try {
       const value = JSON.parse(window.localStorage.getItem(LRU_STORAGE_KEY) || "[]");
-      return Array.isArray(value) ? value.filter((id) => typeof id === "string") : [];
+      return normalizeCommandIds(value);
     } catch {
       return [];
     }
   }
 
+  function loadCommandOrder() {
+    return new Promise((resolve) => {
+      if (!globalThis.chrome?.storage?.local) {
+        lruCommandIds = readLocalStorageLruCommandIds();
+        resolve();
+        return;
+      }
+
+      chrome.storage.local.get([LRU_STORAGE_KEY], (result) => {
+        if (chrome.runtime.lastError) {
+          lruCommandIds = readLocalStorageLruCommandIds();
+          resolve();
+          return;
+        }
+
+        lruCommandIds = normalizeCommandIds(result?.[LRU_STORAGE_KEY]);
+        if (lruCommandIds.length === 0) {
+          lruCommandIds = readLocalStorageLruCommandIds();
+          if (lruCommandIds.length > 0) {
+            chrome.storage.local.set({ [LRU_STORAGE_KEY]: lruCommandIds });
+          }
+        }
+        resolve();
+      });
+    });
+  }
+
   function recordCommandUse(commandId) {
-    const next = [commandId, ...readLruCommandIds().filter((id) => id !== commandId)];
-    window.localStorage.setItem(LRU_STORAGE_KEY, JSON.stringify(next.slice(0, COMMANDS.length)));
+    lruCommandIds = [commandId, ...lruCommandIds.filter((id) => id !== commandId)].slice(
+      0,
+      COMMANDS.length
+    );
+
+    if (globalThis.chrome?.storage?.local) {
+      chrome.storage.local.set({ [LRU_STORAGE_KEY]: lruCommandIds });
+    } else {
+      window.localStorage.setItem(LRU_STORAGE_KEY, JSON.stringify(lruCommandIds));
+    }
   }
 
   function refreshCommandRows() {
@@ -289,6 +332,7 @@
   }
 
   function start() {
+    loadCommandOrder().then(refreshCommandRows);
     injectButtons();
 
     const observer = new MutationObserver(injectButtons);
@@ -299,6 +343,12 @@
 
     document.addEventListener("turbo:render", injectButtons);
     document.addEventListener("turbo:load", injectButtons);
+
+    globalThis.chrome?.storage?.onChanged?.addListener((changes, areaName) => {
+      if (areaName !== "local" || !changes[LRU_STORAGE_KEY]) return;
+      lruCommandIds = normalizeCommandIds(changes[LRU_STORAGE_KEY].newValue);
+      refreshCommandRows();
+    });
   }
 
   start();
