@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Clawsweeper Re-review",
+  "description": "Adds a GitHub PR button that comments @clawsweeper re-review.",
+  "version": "0.1.0",
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/*/pull/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["https://github.com/*"]
+}
