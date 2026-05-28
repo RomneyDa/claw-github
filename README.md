@@ -1,8 +1,8 @@
-# Clawsweeper Re-review Chrome Extension
+# Claw GitHub Chrome Extension
 
-This unpacked Chrome extension runs only on GitHub pull request pages and injects a `Clawsweeper re-review` button near the PR header and near the bottom comment form.
+This unpacked Chrome extension runs only on GitHub pull request pages and injects Claw GitHub command buttons near the PR header and near the bottom comment form.
 
-Clicking the button enters this text into the PR comment box without submitting it:
+Clicking a command enters its text into the PR comment box without submitting it. The five most recently used commands are shown as buttons, and the remaining commands are available from the `More...` selector.
 
 ```text
 @clawsweeper re-review

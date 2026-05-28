@@ -1,9 +1,93 @@
 (() => {
-  const COMMENT_TEXT = "@clawsweeper re-review";
-  const BUTTON_CLASS = "clawsweeper-rereview-button";
+  const VISIBLE_COMMAND_COUNT = 5;
+  const LRU_STORAGE_KEY = "clawGithubCommandLru";
+  const BUTTON_CLASS = "claw-github-command-button";
   const FEATURE_ROW_CLASS = "claw-github-feature-row";
+  const COMMANDS_CLASS = "claw-github-command-list";
   const TOP_ROW_ID = "claw-github-top-feature-row";
   const BOTTOM_ROW_ID = "claw-github-bottom-feature-row";
+  const COMMANDS = [
+    {
+      id: "rereview",
+      label: "Re-review",
+      comment: "@clawsweeper re-review"
+    },
+    {
+      id: "status",
+      label: "Status",
+      comment: "@clawsweeper status"
+    },
+    {
+      id: "automerge",
+      label: "Automerge",
+      comment: "@clawsweeper automerge"
+    },
+    {
+      id: "autofix",
+      label: "Autofix",
+      comment: "@clawsweeper autofix"
+    },
+    {
+      id: "fix-ci",
+      label: "Fix CI",
+      comment: "@clawsweeper fix ci"
+    },
+    {
+      id: "address-review",
+      label: "Address review",
+      comment: "@clawsweeper address review"
+    },
+    {
+      id: "rebase",
+      label: "Rebase",
+      comment: "@clawsweeper rebase"
+    },
+    {
+      id: "explain",
+      label: "Explain",
+      comment: "@clawsweeper explain"
+    },
+    {
+      id: "stop",
+      label: "Stop",
+      comment: "@clawsweeper stop"
+    },
+    {
+      id: "approve",
+      label: "Approve",
+      comment: "@clawsweeper approve"
+    },
+    {
+      id: "hatch",
+      label: "Hatch",
+      comment: "@clawsweeper hatch"
+    },
+    {
+      id: "visualize",
+      label: "Visualize",
+      comment: "@clawsweeper visualize state"
+    },
+    {
+      id: "mantis-telegram",
+      label: "Mantis Telegram",
+      comment: "@openclaw-mantis telegram"
+    },
+    {
+      id: "mantis-visible-proof",
+      label: "Mantis proof",
+      comment: "@openclaw-mantis telegram visible proof"
+    },
+    {
+      id: "mantis-discord-status",
+      label: "Mantis Discord status",
+      comment: "@openclaw-mantis discord status reaction"
+    },
+    {
+      id: "mantis-discord-thread",
+      label: "Mantis Discord thread",
+      comment: "@openclaw-mantis discord thread attachment"
+    }
+  ];
 
   function isPullRequestPage() {
     return /^\/[^/]+\/[^/]+\/pull\/\d+(?:\/|$)/.test(window.location.pathname);
@@ -23,17 +107,68 @@
     const row = document.createElement("div");
     row.id = id;
     row.className = FEATURE_ROW_CLASS;
-    row.append(createLobsterIcon(), createButton());
+    row.append(createLobsterIcon(), createCommandList());
     return row;
   }
 
-  function createButton() {
+  function createCommandList() {
+    const list = document.createElement("div");
+    list.className = COMMANDS_CLASS;
+    renderCommandList(list);
+    return list;
+  }
+
+  function renderCommandList(list) {
+    list.replaceChildren();
+
+    const orderedCommands = orderedCommandList();
+    const visibleCommands = orderedCommands.slice(0, VISIBLE_COMMAND_COUNT);
+    const remainingCommands = orderedCommands.slice(VISIBLE_COMMAND_COUNT);
+
+    for (const command of visibleCommands) {
+      list.append(createButton(command));
+    }
+
+    if (remainingCommands.length > 0) {
+      list.append(createCommandSelect(remainingCommands));
+    }
+  }
+
+  function createButton(command) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `${BUTTON_CLASS} btn btn-sm`;
-    button.textContent = "Clawsweeper re-review";
-    button.addEventListener("click", fillRereviewComment);
+    button.textContent = command.label;
+    button.title = command.comment;
+    button.addEventListener("click", () => useCommand(command.id));
     return button;
+  }
+
+  function createCommandSelect(commands) {
+    const select = document.createElement("select");
+    select.className = "claw-github-command-select form-select input-sm";
+    select.setAttribute("aria-label", "More Claw GitHub commands");
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "More...";
+    select.append(placeholder);
+
+    for (const command of commands) {
+      const option = document.createElement("option");
+      option.value = command.id;
+      option.textContent = command.label;
+      option.title = command.comment;
+      select.append(option);
+    }
+
+    select.addEventListener("change", () => {
+      if (!select.value) return;
+      useCommand(select.value);
+      select.value = "";
+    });
+
+    return select;
   }
 
   function injectTopButton() {
@@ -90,7 +225,16 @@
     textarea.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  function fillRereviewComment() {
+  function useCommand(commandId) {
+    const command = COMMANDS.find((candidate) => candidate.id === commandId);
+    if (!command) return;
+
+    fillComment(command.comment);
+    recordCommandUse(command.id);
+    refreshCommandRows();
+  }
+
+  function fillComment(commentText) {
     const textarea = findCommentTextarea();
 
     if (!textarea) {
@@ -100,7 +244,41 @@
 
     textarea.scrollIntoView({ block: "center", behavior: "smooth" });
     textarea.focus();
-    setTextareaValue(textarea, COMMENT_TEXT);
+    setTextareaValue(textarea, commentText);
+  }
+
+  function orderedCommandList() {
+    const byId = new Map(COMMANDS.map((command) => [command.id, command]));
+    const ordered = [];
+
+    for (const id of readLruCommandIds()) {
+      const command = byId.get(id);
+      if (!command) continue;
+      ordered.push(command);
+      byId.delete(id);
+    }
+
+    return [...ordered, ...byId.values()];
+  }
+
+  function readLruCommandIds() {
+    try {
+      const value = JSON.parse(window.localStorage.getItem(LRU_STORAGE_KEY) || "[]");
+      return Array.isArray(value) ? value.filter((id) => typeof id === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function recordCommandUse(commandId) {
+    const next = [commandId, ...readLruCommandIds().filter((id) => id !== commandId)];
+    window.localStorage.setItem(LRU_STORAGE_KEY, JSON.stringify(next.slice(0, COMMANDS.length)));
+  }
+
+  function refreshCommandRows() {
+    for (const row of document.querySelectorAll(`.${COMMANDS_CLASS}`)) {
+      renderCommandList(row);
+    }
   }
 
   function injectButtons() {
