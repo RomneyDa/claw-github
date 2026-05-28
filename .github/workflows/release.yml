@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Resolve Release Tag
         id: tag
@@ -35,14 +35,18 @@ jobs:
           echo "tag_name=$tag_name" >> "$GITHUB_OUTPUT"
 
       - name: Build Extension Zip
-        run: ./build.sh
+        run: |
+          ./build.sh
+          mkdir -p "$RUNNER_TEMP/release"
+          cd dist
+          zip -r "$RUNNER_TEMP/release/claw-github-extension.zip" .
 
       - name: Publish Release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ steps.tag.outputs.tag_name }}
         run: |
-          asset="dist/claw-github-extension.zip"
+          asset="$RUNNER_TEMP/release/claw-github-extension.zip"
 
           if gh release view "$TAG_NAME" >/dev/null 2>&1; then
             gh release upload "$TAG_NAME" "$asset" --clobber

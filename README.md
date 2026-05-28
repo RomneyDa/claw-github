@@ -30,8 +30,10 @@ https://github.com/<owner>/<repo>/pull/<number>
 This creates:
 
 ```text
-dist/claw-github-extension.zip
+dist/
 ```
+
+`dist/` is the unpacked Chrome extension directory.
 
 ## Release
 

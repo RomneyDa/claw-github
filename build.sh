@@ -3,16 +3,12 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 dist_dir="$root_dir/dist"
-package_name="claw-github-extension.zip"
 
 rm -rf "$dist_dir"
 mkdir -p "$dist_dir"
 
-cd "$root_dir"
-zip -r "$dist_dir/$package_name" \
-  manifest.json \
-  content.js \
-  styles.css \
-  README.md
+cp "$root_dir/manifest.json" "$dist_dir/manifest.json"
+cp "$root_dir/content.js" "$dist_dir/content.js"
+cp "$root_dir/styles.css" "$dist_dir/styles.css"
 
-echo "$dist_dir/$package_name"
+echo "$dist_dir"
