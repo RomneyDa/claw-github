@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ClawGithub",
-  "description": "Adds ClawGithub command buttons to GitHub PR pages.",
-  "version": "0.3.2",
+  "description": "Adds OpenClaw PR comment buttons to the GitHub PR interface.",
+  "version": "0.3.3",
   "permissions": ["storage"],
   "content_scripts": [
     {

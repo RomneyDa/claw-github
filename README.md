@@ -1,6 +1,6 @@
 # ClawGithub
 
-This unpacked Chrome extension runs only on GitHub pull request pages and injects ClawGithub command buttons near the PR header and near the bottom comment form.
+This unpacked Chrome extension runs only on GitHub pull request pages and injects OpenClaw PR comment buttons near the PR header and near the bottom comment form.
 
 Clicking a command enters its exact text into the PR comment box without submitting it. The three most recently used commands are shown as buttons, and the remaining commands continue in LRU order inside the `More...` selector. Hover a command to see what it does and where the command is implemented.
 
