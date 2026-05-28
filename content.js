@@ -10,18 +10,12 @@
   }
 
   function createLobsterIcon() {
-    const icon = document.createElement("span");
+    const icon = document.createElement("img");
     icon.className = "claw-github-feature-icon";
+    icon.src = chrome.runtime.getURL("openclaw.webp");
+    icon.alt = "";
     icon.setAttribute("aria-label", "Claw GitHub features");
     icon.setAttribute("role", "img");
-    icon.innerHTML = `
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M7.2 8.6c-1.1-.3-2.2-1-2.9-2L3 4.9l1.6-1.2 1.2 1.6c.5.7 1.4 1.1 2.2 1.2l.5-2.2 2 .5-.8 3.3c.7.5 1.2 1.2 1.5 2h1.6c.3-.8.8-1.5 1.5-2l-.8-3.3 2-.5.5 2.2c.9-.1 1.7-.5 2.2-1.2L19.4 3.7 21 4.9l-1.3 1.7c-.7 1-1.8 1.7-2.9 2 .8 1 .9 2.5.1 3.7l-.6.9-1.7-1.1.6-.9c.5-.7.3-1.7-.4-2.2-.7.8-1.7 1.3-2.8 1.3s-2.1-.5-2.8-1.3c-.7.5-.9 1.5-.4 2.2l.6.9-1.7 1.1-.6-.9c-.8-1.2-.7-2.7.1-3.7Z" />
-        <path d="M8 13.8h8v2.1c0 2.2-1.8 4.1-4 4.1s-4-1.9-4-4.1v-2.1Z" />
-        <path d="M5.1 15.3 2.8 14l-1 1.7 3.7 2.1L8 16.4v-2.3l-2.9 1.2Z" />
-        <path d="m18.9 15.3 2.3-1.3 1 1.7-3.7 2.1-2.5-1.4v-2.3l2.9 1.2Z" />
-      </svg>
-    `;
     return icon;
   }
 

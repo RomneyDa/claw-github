@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Clawsweeper Re-review",
   "description": "Adds a GitHub PR button that comments @clawsweeper re-review.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "content_scripts": [
     {
       "matches": ["https://github.com/*/*/pull/*"],
@@ -11,5 +11,11 @@
       "run_at": "document_idle"
     }
   ],
-  "host_permissions": ["https://github.com/*"]
+  "host_permissions": ["https://github.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["openclaw.webp"],
+      "matches": ["https://github.com/*"]
+    }
+  ]
 }

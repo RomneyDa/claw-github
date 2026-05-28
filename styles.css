@@ -7,19 +7,10 @@
 }
 
 .claw-github-feature-icon {
-  align-items: center;
-  color: var(--fgColor-muted, var(--color-fg-muted, #656d76));
-  display: inline-flex;
   height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.claw-github-feature-icon svg {
   display: block;
-  fill: currentColor;
-  height: 20px;
-  width: 20px;
+  object-fit: contain;
+  width: 24px;
 }
 
 .clawsweeper-rereview-button {
