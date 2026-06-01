@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ClawGithub
 // @namespace    https://github.com/RomneyDa/claw-github
-// @version      0.4.0
+// @version      0.4.1
 // @description  Adds OpenClaw PR comment buttons to the GitHub PR interface.
 // @match        https://github.com/*/*/pull/*
 // @run-at       document-idle
